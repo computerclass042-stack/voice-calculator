@@ -1,84 +1,68 @@
-# Voice able calculator.
+import streamlit as st
+from gtts import gTTS
+import os
+import math
 
-
-import win32com.client as wincl
-import time
-
-speak = wincl.Dispatch("SAPI.SpVoice")
-
+# Function to handle voice in Streamlit
 def say(text):
-    speak.Speak(text)
-    time.sleep(0.3)
+    tts = gTTS(text=text, lang='en')
+    tts.save("temp_audio.mp3")
+    st.audio("temp_audio.mp3", format="audio/mp3", autoplay=True)
 
-print("choose operators:")
-print("1-Add")
-print("2-Subtract")
-print("3-Multiple")
-print("4-Divide")
-print("5-square")
-print("6-cube")
-print("7-squareroot")
+st.title("Voice Calculator - Igris Blood Red")
 
-say("Hello, I am Igris blood red, the calculator")
-say("Press 1 for addition, 2 for subtraction, 3 for multiplication, 4 for division, 5 for square, 6 for cube, 7 for square root")
+# Sidebar for instructions or status
+st.sidebar.markdown("### Choose Operator:")
+st.sidebar.text("1-Add\n2-Subtract\n3-Multiply\n4-Divide\n5-Square\n6-Cube\n7-Square Root")
 
-choice = input("Enter your operator (1/2/3/4/5/6/7): ")
+# User Choice
+choice = st.selectbox("Select your operator:", 
+                      ["1 (Add)", "2 (Subtract)", "3 (Multiply)", "4 (Divide)", 
+                       "5 (Square)", "6 (Cube)", "7 (Square Root)"])
 
-#          INPUT SECTION 
-if choice in ["1","2","3","4"]:
-    say("Enter first number")
-    a = int(input("Enter first number: "))
+# Extracting only the number from choice
+c = choice[0]
 
-    say("Enter second number")
-    b = int(input("Enter second number: "))
+# Input Section
+a, b, N = 0, 0, 0
+if c in ["1", "2", "3", "4"]:
+    a = st.number_input("Enter first number:", value=0)
+    b = st.number_input("Enter second number:", value=0)
+elif c in ["5", "6", "7"]:
+    N = st.number_input("Enter your number:", value=0)
 
-elif choice in ["5","6","7"]:
-    say("Enter your number")
-    N = int(input("Enter your number: "))
+if st.button("Calculate"):
+    result = 0
+    msg = ""
 
-#           CALCULATION SECTION 
-if choice == "1":
-    result = a + b
-    print("result",result)
-    say(f"You choose addoition and your Result is,{result}")
+    if c == "1":
+        result = a + b
+        msg = f"You chose addition and your result is {result}"
+    elif c == "2":
+        result = a - b
+        msg = f"You chose subtraction and your result is {result}"
+    elif c == "3":
+        result = a * b
+        msg = f"You chose multiplication and your result is {result}"
+    elif c == "4":
+        if b != 0:
+            result = a / b
+            msg = f"You chose division and your result is {result}"
+        else:
+            msg = "Error: Denominator cannot be zero"
+            st.error(msg)
+    elif c == "5":
+        result = N * N
+        msg = f"You chose squaring and your result is {result}"
+    elif c == "6":
+        result = N * N * N
+        msg = f"You chose cubing and your result is {result}"
+    elif c == "7":
+        result = math.sqrt(N)
+        msg = f"You chose square root and your result is {result}"
 
-elif choice == "2":
-    result = a - b
-    print("result",result)
-    say(f"You choose subtraction and your Result is,{result}")
-
-elif choice == "3":
-    result = a * b
-    print("result",result)
-    say(f"You choose multiplication and your Result is,{result}")
-
-elif choice == "4":
-    if b != 0:
-        result = a / b
-        print("result",result)
-        say(f"You choose division and your Result is,{result}")
-    else:
-        say("Error denominator cannot be zero")
-        print("Error: cannot divide by zero")
-        exit()
-
-elif choice == "5":
-    result = N * N
-    print("result",result)
-    say(f"You choose squaring and your Result is,{result}")
-
-elif choice == "6":
-    result = N * N * N
-    print("result",result)
-    say(f"You choose cubing and your Result is,{result}")
-
-elif choice == "7":
-    import math
-    result = math.sqrt(N)
-    print("result",result)
-    say(f"You choose square root and your Result is,{result}")
-
-else:
-    say("Invalid choice")
-    print("Invalid choice")
-    exit()
+    if msg and "Error" not in msg:
+        st.success(f"Result: {result}")
+        say(msg)
+    elif "Error" in msg:
+        say(msg)
